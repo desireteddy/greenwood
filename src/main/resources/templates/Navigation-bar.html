@@ -1,0 +1,26 @@
+<nav xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="nav">
+    <aside id="sidebar" class="sidebar">
+        <a href="/dashboard" class="brand">
+            <img th:if="${logoUrl != null and !#strings.isEmpty(logoUrl)}" th:src="${logoUrl}" class="brand-mark" style="object-fit:cover" alt="School logo"><div th:unless="${logoUrl != null and !#strings.isEmpty(logoUrl)}" class="brand-mark">G</div>
+            <div><div class="brand-title" th:text="${schoolName}">Greenwood Eco School</div><div class="brand-sub" th:text="${schoolTagline}">Learn • Grow • Protect</div></div>
+        </a>
+        <div class="nav-section">Workspace</div>
+        <a class="side-link" href="/dashboard">▦ <span>Dashboard</span></a>
+        <a class="side-link" sec:authorize="hasRole('ADMIN')" href="/students">♙ <span>Students</span></a>
+        <a class="side-link" sec:authorize="hasRole('ADMIN')" href="/lecturers">♧ <span>Lecturers</span></a>
+        <a class="side-link" href="/courses">▤ <span>Courses</span></a>
+        <a class="side-link" href="/attendance">✓ <span>Attendance</span></a>
+        <a class="side-link" href="/marks">▥ <span>Marks & Results</span></a>
+        <a class="side-link" href="/transcripts">▣ <span>Transcripts</span></a>
+        <div class="nav-section" sec:authorize="hasRole('ADMIN')">Administration</div>
+        <a class="side-link" sec:authorize="hasRole('ADMIN')" href="/accounts">⚿ <span>User accounts</span></a>
+        <a class="side-link" sec:authorize="hasRole('ADMIN')" href="/settings">⚙ <span>System settings</span></a>
+        <div class="side-bottom">
+            <a class="side-link" href="/change-password">🔒 <span>My password</span></a>
+            <form th:action="@{/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="side-link w-100 border-0 bg-transparent text-start" type="submit">↪ <span>Sign out</span></button>
+            </form>
+        </div>
+    </aside>
+</nav>

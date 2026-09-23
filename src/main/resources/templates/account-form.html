@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title th:text="${schoolName} + ' • Create account'">Greenwood Eco School • Create account</title>
+<link rel="stylesheet" href="/css/style.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="app-shell">
+<div th:replace="~{Navigation-bar :: nav}"></div>
+<div class="main-wrap">
+<header class="topbar">
+<button class="btn btn-light menu-btn" id="menuBtn" type="button" aria-label="Open navigation">☰</button>
+<div><strong>Create account</strong><div class="small text-muted">Set up secure access with the correct role and credentials.</div></div>
+<div class="d-flex align-items-center gap-2"><span class="badge-soft" sec:authentication="name">admin</span><a class="btn btn-sm btn-outline-secondary" href="/accounts">Accounts</a></div>
+</header>
+<main class="content">
+<div class="page-heading"><div><div class="eyebrow text-brand">Administration • People & access</div><h1>Create account</h1><p>Choose a role first. The form will only show the fields needed for that type of account.</p></div><a class="btn btn-outline-secondary" href="/accounts">Back to accounts</a></div>
+<div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+<section class="panel form-card account-form-card">
+<div class="form-section-title"><div><h2>Account details</h2><span class="small text-muted">All passwords require at least 8 characters.</span></div><span class="status-badge status-success">Secure setup</span></div>
+<form th:action="@{/saveAccount}" th:object="${accountForm}" method="post" id="accountForm" novalidate>
+<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+<div class="field mb-3"><label for="role">Account type *</label><select id="role" th:field="*{role}" class="form-select form-select-lg" required><option value="">Select account type</option><option value="ADMIN">Administrator</option><option value="LECTURER">Lecturer</option><option value="STUDENT">Student</option></select></div>
+<div id="roleGuide" class="role-guide" aria-live="polite"><strong>Choose a role</strong><span>Select Administrator, Lecturer or Student to continue.</span></div>
+<div id="staffFields" class="conditional-fields">
+<div class="form-section-title compact"><div><h2>Staff access</h2><span class="small text-muted">Used for administrator and lecturer accounts.</span></div></div>
+<div class="form-grid"><div class="field"><label for="username">Username *</label><input id="username" th:field="*{username}" class="form-control" maxlength="100" autocomplete="username" placeholder="e.g. admin or jdoe"></div></div>
+</div>
+<div id="studentFields" class="conditional-fields">
+<div class="form-section-title compact"><div><h2>Student access</h2><span class="small text-muted">The student's existing student number becomes the login username.</span></div></div>
+<div class="form-grid"><div class="field"><label for="studentId">Student *</label><select id="studentId" th:field="*{studentId}" class="form-select"><option value="">Select student</option><option th:each="student : ${students}" th:value="${student.id}" th:text="${student.studentNumber + ' — ' + student.firstName + ' ' + student.lastName}"></option></select></div></div>
+<div class="form-note">Student accounts are linked to one student record. A student who already has an account cannot be assigned a second account.</div>
+</div>
+<div class="form-section-title compact"><div><h2>Temporary password</h2><span class="small text-muted">The user must change this after first login.</span></div></div>
+<div class="form-grid"><div class="field"><label for="temporaryPassword">Temporary password *</label><div class="input-wrap"><input id="temporaryPassword" th:field="*{temporaryPassword}" type="password" minlength="8" maxlength="128" autocomplete="new-password" class="form-control pe-5" required><button class="toggle-password" type="button" data-target="temporaryPassword">Show</button></div></div><div class="field"><label for="confirmTemporaryPassword">Confirm temporary password *</label><div class="input-wrap"><input id="confirmTemporaryPassword" th:field="*{confirmTemporaryPassword}" type="password" minlength="8" maxlength="128" autocomplete="new-password" class="form-control pe-5" required><button class="toggle-password" type="button" data-target="confirmTemporaryPassword">Show</button></div></div></div>
+<div id="passwordMatch" class="small mt-2" aria-live="polite"></div>
+<div class="form-actions"><a class="btn btn-light" href="/accounts">Cancel</a><button class="btn btn-brand" type="submit" id="saveAccountBtn">Create account</button></div>
+</form>
+</section>
+</main>
+<div class="footer" th:text="${footerText}">Greenwood Eco School • Smart Campus</div>
+</div></div>
+<div id="overlay" class="mobile-overlay"></div>
+<script>
+const sidebar=document.getElementById('sidebar'),menu=document.getElementById('menuBtn'),overlay=document.getElementById('overlay');
+if(menu){menu.onclick=()=>{sidebar.classList.add('open');overlay.classList.add('show')}}if(overlay){overlay.onclick=()=>{sidebar.classList.remove('open');overlay.classList.remove('show')}}
+const role=document.getElementById('role'),staff=document.getElementById('staffFields'),student=document.getElementById('studentFields'),username=document.getElementById('username'),studentId=document.getElementById('studentId'),guide=document.getElementById('roleGuide');
+function syncRole(){const r=role.value;const isStudent=r==='STUDENT';const isStaff=r==='ADMIN'||r==='LECTURER';staff.classList.toggle('show',isStaff);student.classList.toggle('show',isStudent);username.required=isStaff;studentId.required=isStudent;if(isStudent){guide.innerHTML='<strong>Student account</strong><span>Select one student. Their student number will be used automatically as the login username.</span>'}else if(r==='ADMIN'){guide.innerHTML='<strong>Administrator account</strong><span>Use a unique staff username. Administrators can access protected management areas.</span>'}else if(r==='LECTURER'){guide.innerHTML='<strong>Lecturer account</strong><span>Use a unique staff username for teaching and academic workspace access.</span>'}else{guide.innerHTML='<strong>Choose a role</strong><span>Select Administrator, Lecturer or Student to continue.</span>'}}
+role.addEventListener('change',syncRole);syncRole();
+document.querySelectorAll('.toggle-password').forEach(btn=>btn.addEventListener('click',()=>{const input=document.getElementById(btn.dataset.target);const show=input.type==='password';input.type=show?'text':'password';btn.textContent=show?'Hide':'Show'}));
+const pass=document.getElementById('temporaryPassword'),confirmPass=document.getElementById('confirmTemporaryPassword'),match=document.getElementById('passwordMatch'),form=document.getElementById('accountForm');
+function checkPassword(){if(!confirmPass.value){match.textContent='';return true}const ok=pass.value===confirmPass.value;match.textContent=ok?'Passwords match.':'Passwords do not match.';match.className='small mt-2 '+(ok?'text-success':'text-danger');return ok}
+pass.addEventListener('input',checkPassword);confirmPass.addEventListener('input',checkPassword);form.addEventListener('submit',e=>{if(!checkPassword()){e.preventDefault();confirmPass.focus()}});
+</script>
+</body></html>
